@@ -70,6 +70,7 @@ function loadDocument(id) {
   filename.value     = doc.name;
   topFileTitle.value = doc.name;
   renderDocuments();
+  updateDocStats();
 }
 
 /* ===================================================
@@ -203,7 +204,10 @@ function fileHandle(value) {
 /* ===================================================
    AUTO SAVE
 =================================================== */
-content.addEventListener("input", saveCurrentDocument);
+content.addEventListener("input", () => {
+  saveCurrentDocument();
+  updateDocStats(); // ← add this
+});
 
 /* ===================================================
    TITLE EDITING
@@ -551,3 +555,23 @@ content.addEventListener("paste", function (e) {
   });
 
 })();
+
+/* ============================================================
+      WORD COUNT
+   ============================================================ */
+
+function updateDocStats() {
+  const text = content.innerText.trim();
+  const words = text === "" ? 0 : text.split(/\s+/).filter(Boolean).length;
+  const chars = text.length; // ← add this
+  const minutes = Math.ceil(words / 200);
+
+  document.getElementById("wordCount").textContent =
+    words === 1 ? "1 word" : `${words.toLocaleString()} words`;
+
+  document.getElementById("charCount").textContent = // ← add this
+    `${chars.toLocaleString()} chars`;
+
+  document.getElementById("readTime").textContent =
+    minutes <= 1 ? "< 1 min read" : `${minutes} min read`;
+}
