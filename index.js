@@ -83,7 +83,38 @@ function saveCurrentDocument() {
   doc.name       = topFileTitle.value.trim() || "Untitled Document";
   filename.value = doc.name;
   saveToStorage();
-  renderDocuments();
+
+/* ===================================================
+  SAVED OR SAVING
+=================================================== */
+const saveStatus = document.getElementById("saveStatus");
+
+let typingTimer;
+const typingDelay = 1000; // 1 second after user stops typing
+
+content.addEventListener("input", () => {
+
+  // User is typing
+  saveStatus.textContent = "Saving...";
+  saveStatus.classList.add("saving");
+
+  // Clear old timer
+  clearTimeout(typingTimer);
+
+  // Start new timer
+  typingTimer = setTimeout(() => {
+
+    // User stopped typing
+    saveCurrentDocument();
+
+    saveStatus.textContent = "Saved";
+    saveStatus.classList.remove("saving");
+
+  }, typingDelay);
+
+});
+
+
 }
 
 /* ===================================================
@@ -152,7 +183,20 @@ function fileHandle(value) {
     link.download = `${topFileTitle.value}.txt`;
     link.click();
   } else if (value === "pdf") {
-    html2pdf().from(content).save(`${topFileTitle.value}.pdf`);
+    html2pdf()
+  .set({
+    margin: 10,
+    filename: `${topFileTitle.value}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: {
+      unit: "mm",
+      format: "a4",
+      orientation: "portrait"
+    }
+  })
+  .from(content)
+  .save();
   }
 }
 
@@ -186,6 +230,16 @@ if (documents.length === 0) {
   loadDocument(documents[0].id);
 }
 renderDocuments();
+
+/*=========================================
+    ACTIVE BUTTONS
+  =========================================*/
+
+document.querySelectorAll(".tool-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    btn.classList.toggle("active");
+  });
+});
 
 /* ============================================================
    AI TABS
